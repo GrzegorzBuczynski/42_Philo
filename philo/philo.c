@@ -34,6 +34,18 @@ void	*eating(void *arg)
 	return (NULL);
 }
 
+void	*thinking(void *arg)
+{
+	t_table	*table;
+	int		i;
+
+	table = (t_table *)arg;
+	i = table->id;
+	printf("Philosopher %d is thinking\n", i);
+	return (NULL);
+}
+
+
 /*
 
 	zablokuj 3 mutexy
