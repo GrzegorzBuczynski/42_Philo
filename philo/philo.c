@@ -4,33 +4,64 @@
 
 #define PHILO_NUM 3
 
-typedef struct
+typedef struct philo
 {
 	int				id;
-	pthread_t		*thread;
-}					Philosopher;
+	int				time_to_eat;
+	long			last_eat;
+
+}					t_philosopher;
 
 typedef struct
 {
 	pthread_mutex_t	**mutex;
-	Philosopher		**philosopher;
+	pthread_mutex_t	*mutex_odd;
+	pthread_mutex_t	*mutex_even;
+	t_philosopher		**philosopher;
 	int				philo_num;
 	int				id;
 }					t_table;
 
-void	*eating(void *arg)
+void	eating(t_table *table)
 {
-	t_table	*table;
-	int		i;
+	while (get_time - )
+}
+
+void	lock_itself(t_table *table)
+{
+	if (table->id % 2 == 0)
+		pthread_mutex_lock(table->mutex_even);
+	else
+		pthread_mutex_lock(table->mutex_odd);
+}
+
+void	unlock_oposit(t_table *table)
+{
+	if (table->id % 2 == 0)
+		pthread_mutex_unlock(table->mutex_odd);
+	else
+		pthread_mutex_unlock(table->mutex_even);
+}
+
+void	lock_forks(t_table *table)
+{
+	pthread_mutex_lock(table->mutex[table->id]);
+	pthread_mutex_lock(table->mutex[(table->id + 1) % table->philo_num]);
+}
+
+void	*do_philo_stuff(void *arg)
+{
+	t_table			*table;
+	t_philosopher	*philosopher;
 
 	table = (t_table *)arg;
-	i = table->id;
-	pthread_mutex_lock(table->mutex[i]);
-	pthread_mutex_lock(table->mutex[i + 1]);
-	printf("Philosopher %d is eating\n", i);
-	sleep(1);
-	pthread_mutex_unlock(table->mutex[i]);
-	pthread_mutex_unlock(table->mutex[i + 1]);
+	philosopher = (t_table *)arg->philosopher[table->id];
+	lock_itself(table);
+	lock_forks(table);
+	eating(table);
+	sleeping(table);
+	thinking(table);
+	unlock_oposit(table);
 	return (NULL);
 }
 
@@ -44,7 +75,6 @@ void	*thinking(void *arg)
 	printf("Philosopher %d is thinking\n", i);
 	return (NULL);
 }
-
 
 /*
 
@@ -63,7 +93,7 @@ void	init_table(t_table *table, int philo_num)
 	table->philo_num = philo_num;
 	table->mutex = (pthread_mutex_t **)malloc(sizeof(pthread_mutex_t *) * 2
 			* philo_num);
-	table->philosopher = (Philosopher **)malloc(sizeof(Philosopher *)
+	table->philosopher = (t_philosopher **)malloc(sizeof(t_philosopher *)
 			* philo_num);
 }
 
@@ -86,14 +116,14 @@ void	init_mutex(pthread_mutex_t **mutex, int philo_num)
 	}
 }
 
-void	init_philosopher(Philosopher **philosopher, int philo_num)
+void	init_philosopher(t_philosopher **philosopher, int philo_num)
 {
 	int	i;
 
 	i = 0;
 	while (i < philo_num)
 	{
-		philosopher[i] = (Philosopher *)malloc(sizeof(Philosopher));
+		philosopher[i] = (t_philosopher *)malloc(sizeof(t_philosopher));
 		philosopher[i]->thread = (pthread_t *)malloc(sizeof(pthread_t));
 		philosopher[i]->id = i;
 		i++;
