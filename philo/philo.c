@@ -4,27 +4,50 @@
 
 #define PHILO_NUM 3
 
-typedef struct philo
+typedef struct s_philo
 {
 	int				id;
-	int				time_to_eat;
+	struct s_table	*table;
+	pthread_t		*thread;
 	long			last_eat;
+	long			last_sleep;
 
 }					t_philosopher;
 
-typedef struct
+typedef struct s_table
 {
+	int				runing;
 	pthread_mutex_t	**mutex;
 	pthread_mutex_t	*mutex_odd;
 	pthread_mutex_t	*mutex_even;
-	t_philosopher		**philosopher;
+	t_philosopher	**philosopher;
 	int				philo_num;
 	int				id;
+	int				time_to_eat;
+	long			time_to_sleep;
 }					t_table;
 
-void	eating(t_table *table)
+void	precise_usleep(long usec)
 {
-	while (get_time - )
+	long	elapsed;
+	long	rem;
+
+	struct timeval start, current;
+	gettimeofday(&start, NULL);
+	do
+	{
+		gettimeofday(&current, NULL);
+		elapsed = get_elapsed_time_microseconds(start, current);
+		rem = usec - elapsed;
+		if (rem > 1000)
+			usleep(rem / 2);
+	} while (elapsed < usec);
+}
+
+void	eating(t_philosopher *philosopher)
+{
+	printf("Philosopher %d is eating\n", philosopher->id);
+	precise_usleep(philosopher->table->time_to_eat);
 }
 
 void	lock_itself(t_table *table)
@@ -49,22 +72,6 @@ void	lock_forks(t_table *table)
 	pthread_mutex_lock(table->mutex[(table->id + 1) % table->philo_num]);
 }
 
-void	*do_philo_stuff(void *arg)
-{
-	t_table			*table;
-	t_philosopher	*philosopher;
-
-	table = (t_table *)arg;
-	philosopher = (t_table *)arg->philosopher[table->id];
-	lock_itself(table);
-	lock_forks(table);
-	eating(table);
-	sleeping(table);
-	thinking(table);
-	unlock_oposit(table);
-	return (NULL);
-}
-
 void	*thinking(void *arg)
 {
 	t_table	*table;
@@ -76,6 +83,20 @@ void	*thinking(void *arg)
 	return (NULL);
 }
 
+void	*do_philo_stuff(void *arg)
+{
+	t_table			*table;
+	t_philosopher	*philosopher;
+
+	while (table->runing)
+		;
+	table = (t_table *)arg;
+	philosopher = (t_table *)arg->philosopher[table->id];
+	eating(philosopher);
+	sleeping(philosopher);
+	thinking(philosopher);
+	return (NULL);
+}
 /*
 
 	zablokuj 3 mutexy
@@ -95,6 +116,7 @@ void	init_table(t_table *table, int philo_num)
 			* philo_num);
 	table->philosopher = (t_philosopher **)malloc(sizeof(t_philosopher *)
 			* philo_num);
+	table->runing = 0;
 }
 
 void	init_mutex(pthread_mutex_t **mutex, int philo_num)
@@ -116,18 +138,17 @@ void	init_mutex(pthread_mutex_t **mutex, int philo_num)
 	}
 }
 
-void	init_philosopher(t_philosopher **philosopher, int philo_num)
+t_philosopher	*init_philosopher(int philo_num)
 {
-	int	i;
+	t_philosopher	*philosopher;
+	pthread_t		*thread;
 
-	i = 0;
-	while (i < philo_num)
-	{
-		philosopher[i] = (t_philosopher *)malloc(sizeof(t_philosopher));
-		philosopher[i]->thread = (pthread_t *)malloc(sizeof(pthread_t));
-		philosopher[i]->id = i;
-		i++;
-	}
+	philosopher = (t_philosopher *)malloc(sizeof(t_philosopher));
+	thread = (pthread_t *)malloc(sizeof(pthread_t));
+	philosopher->id = philo_num;
+	if (pthread_create(thread, NULL, do_philo_stuff, NULL) != 0)
+		perror("Nie udało się utworzyć wątku dla filozofa");
+	
 }
 
 int	main(void)
@@ -138,21 +159,12 @@ int	main(void)
 
 	philo_num = PHILO_NUM;
 	init_table(&table, philo_num);
-	init_philosopher(table.philosopher, philo_num);
 	init_mutex(table.mutex, philo_num);
 	i = 0;
-	i = 0;
 	while (i < philo_num)
 	{
-		printf("Philosopher %d is thinking\n", i);
-		pthread_create(table.philosopher[i]->thread, NULL, eating, &table);
+		table.philosopher[i] = init_philosopher(i);
 		i++;
 	}
-	i = 0;
-	while (i < philo_num)
-	{
-		printf("Philosopher %d is dead\n", i);
-		// pthread_join(thread[i], NULL);
-		i++;
-	}
+	table.runing = 1;
 }
