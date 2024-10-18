@@ -2,7 +2,7 @@
 
 #include "philo.h"
 
-#define PHILO_NUM 3
+#define PHILO_NUM 5
 
 typedef struct s_philo
 {
@@ -26,6 +26,7 @@ typedef struct s_table
 	int				time_to_eat;
 	long			time_to_sleep;
 	long			time_to_die;
+	struct timeval	sim_start_time;
 }					t_table;
 
 long	get_utime_delta(struct timeval start, struct timeval end)
@@ -44,14 +45,20 @@ void	precise_usleep(long usec)
 
 	struct timeval start, current;
 	gettimeofday(&start, NULL);
-	do
+	while (true)
 	{
 		gettimeofday(&current, NULL);
 		elapsed = get_utime_delta(start, current);
 		rem = usec - elapsed;
 		if (rem > 1000)
+		{
 			usleep(rem / 2);
-	} while (elapsed < usec);
+		}
+		else
+		{
+			break ;
+		}
+	}
 }
 
 void	init_table(t_table *table, int philo_num)
@@ -64,8 +71,9 @@ void	init_table(t_table *table, int philo_num)
 	table->philo = (t_philo *)malloc(sizeof(t_philo) * philo_num);
 	table->fork = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t)
 			* philo_num);
-	table->time_to_eat = 1000;
-	table->time_to_sleep = 1000;
+	table->time_to_eat = 100000;
+	table->time_to_sleep = 100000;
+	table->time_to_die = 500000;
 	pthread_mutex_init(&table->check, NULL);
 	while (i < philo_num)
 	{
@@ -81,7 +89,19 @@ void	init_table(t_table *table, int philo_num)
 int	check_start(t_philo *philo)
 {
 	pthread_mutex_lock(&(philo->table->check));
-	if (philo->table->running && philo->meals_left)
+	if (philo->table->running)
+	{
+		pthread_mutex_unlock(&philo->table->check);
+		return (1);
+	}
+	pthread_mutex_unlock(&philo->table->check);
+	return (0);
+}
+
+int	meals_left(t_philo *philo)
+{
+	pthread_mutex_lock(&(philo->table->check));
+	if (philo->meals_left > 0)
 	{
 		pthread_mutex_unlock(&philo->table->check);
 		return (1);
@@ -94,18 +114,29 @@ void	lock_forks(t_philo *philo)
 {
 	int	id;
 	int	philo_num;
+	struct timeval	current;
 
 	id = philo->id;
 	philo_num = philo->table->philo_num;
 	if (philo->id % 2 == 0)
 	{
-		pthread_mutex_lock(&philo->table->fork[id]);
 		pthread_mutex_lock(&philo->table->fork[(id + 1) % philo_num]);
+		pthread_mutex_lock(&philo->table->check);
+		gettimeofday(&current, NULL);
+		printf("%ld Philosopher %d has taken fork %d\n", (get_utime_delta(philo->table->sim_start_time, current) * 1000000), id, (id + 1) % philo_num);
+		pthread_mutex_lock(&philo->table->fork[id]);
+		printf("%ld Philosopher %d has taken fork %d\n",(get_utime_delta(philo->table->sim_start_time, current) * 1000000), id, id);
+		pthread_mutex_unlock(&philo->table->check);
 	}
 	else
 	{
-		pthread_mutex_lock(&philo->table->fork[(id + 1) % philo_num]);
+		pthread_mutex_lock(&philo->table->check);
 		pthread_mutex_lock(&philo->table->fork[id]);
+		gettimeofday(&current, NULL);
+		printf("%ld Philosopher %d has taken fork %d\n",(get_utime_delta(philo->table->sim_start_time, current) * 1000000), id, id);
+		pthread_mutex_lock(&philo->table->fork[(id + 1) % philo_num]);
+		printf("%ld Philosopher %d has taken fork %d\n",(get_utime_delta(philo->table->sim_start_time, current) * 1000000), id, (id + 1)% philo_num);
+		pthread_mutex_unlock(&philo->table->check);
 	}
 }
 
@@ -133,10 +164,13 @@ void	eating(t_philo *philo)
 	lock_forks(philo);
 	pthread_mutex_lock(&philo->table->check);
 	philo->meals_left--;
+	pthread_mutex_lock(&philo->table->check);
 	gettimeofday(&philo->last_eat, NULL);
+	pthread_mutex_unlock(&philo->table->check);
 	printf("Philosopher %d is eating\n", philo->id);
 	pthread_mutex_unlock(&philo->table->check);
 	precise_usleep(philo->table->time_to_eat);
+	printf("Philosopher %d has finished eating\n", philo->id);
 	unlock_forks(philo);
 }
 
@@ -168,7 +202,9 @@ void	*do_philo_stuff(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	while (check_start(philo))
+	while (!check_start(philo))
+		;
+	while (meals_left(philo))
 	{
 		eating(philo);
 		sleeping(philo);
@@ -192,17 +228,24 @@ void	*fmonitor(void *arg)
 	int				philo_num;
 	int				running;
 	struct timeval	current;
+	struct timeval	current2;
+	long			elapsed;
 
 	table = (t_table *)arg;
 	philo_num = table->philo_num;
 	running = 1;
-	while (running)
+	while (running && table->running)
 	{
 		i = 0;
 		while (i < philo_num)
 		{
 			pthread_mutex_lock(&table->check);
 			gettimeofday(&current, NULL);
+			// usleep(1500000);
+			// gettimeofday(&current2, NULL);
+			// elapsed = get_utime_delta(current, current2);
+			// elapsed = get_utime_delta(table->philo[i].last_eat, current);
+			// elapsed = elapsed / 1000000;
 			if (get_utime_delta(table->philo[i].last_eat,
 					current) > table->time_to_die)
 			{
@@ -241,15 +284,18 @@ int	main(void)
 			perror("Nie udało się utworzyć wątku dla filozofa");
 		i++;
 	}
-	if (pthread_create(&monitor, NULL, fmonitor, &table) != 0)
-		perror("Nie udało się utworzyć wątku dla filozofa");
+	table.running = 1;
+	gettimeofday(&table.sim_start_time, NULL);
+	// fmonitor(&table);
+	// if (pthread_create(&monitor, NULL, fmonitor, &table) != 0)
+	// perror("Nie udało się utworzyć wątku dla filozofa");
 	i = 0;
 	while (i < table.philo_num)
 	{
 		pthread_join(table.philo[i].thread, NULL);
 		i++;
 	}
-	pthread_join(monitor, NULL);
+	// pthread_join(monitor, NULL);
 }
 
 // void	init_mutex(pthread_mutex_t **mutex, int philo_num)
