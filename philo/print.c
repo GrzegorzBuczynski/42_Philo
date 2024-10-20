@@ -1,28 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.c                                            :+:      :+:    :+:   */
+/*   print.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/20 20:27:35 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/20 20:27:46 by gbuczyns         ###   ########.fr       */
+/*   Created: 2024/10/20 15:43:17 by gbuczyns          #+#    #+#             */
+/*   Updated: 2024/10/20 18:52:38 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	main(int argc, char **argv)
+void print_message(t_philo *philo, const char *message)
 {
-	t_table	table;
-
-	if (validate_arguments(argc, argv))
-		return (0);
-	initialize_table(&table, argc, argv);
-	if (initialize_philosophers(&table))
-		return (0);
-	create_threads(&table, &table.monitor_thread);
-	join_threads(&table, &table.monitor_thread);
-	cleanup(&table);
-	return (0);
+	pthread_mutex_lock(philo->print_lock);
+	printf("%ld Philosopher %d %s\n", get_time_delta(philo->table->start_time, get_timestamp()),
+		philo->id, message);
+	pthread_mutex_unlock(philo->print_lock);
 }

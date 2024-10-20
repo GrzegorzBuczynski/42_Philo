@@ -1,28 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philo.c                                            :+:      :+:    :+:   */
+/*   error.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/20 20:27:35 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/20 20:27:46 by gbuczyns         ###   ########.fr       */
+/*   Created: 2024/10/20 15:06:58 by gbuczyns          #+#    #+#             */
+/*   Updated: 2024/10/20 18:52:44 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	main(int argc, char **argv)
+void	error_exit(const char *error)
 {
-	t_table	table;
-
-	if (validate_arguments(argc, argv))
-		return (0);
-	initialize_table(&table, argc, argv);
-	if (initialize_philosophers(&table))
-		return (0);
-	create_threads(&table, &table.monitor_thread);
-	join_threads(&table, &table.monitor_thread);
-	cleanup(&table);
-	return (0);
+	dprintf(2, "%s: %s\n", "error", error);
+	exit(1);
 }

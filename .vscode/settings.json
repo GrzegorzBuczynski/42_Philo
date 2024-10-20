@@ -1,6 +1,7 @@
 {
 	"files.associations": {
 		"philo.h": "c",
-		"cstdio": "cpp"
+		"errno.h": "c",
+		"time.h": "c"
 	}
 }
