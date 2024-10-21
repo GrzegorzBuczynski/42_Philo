@@ -10,8 +10,9 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <sys/time.h>
+# include <unistd.h>
 
-# define PHILO_NUM 5
+# define DEBUG_MODE 0
 
 typedef enum e_opcade
 {
@@ -30,6 +31,16 @@ typedef enum e_time_code
 	MILLISECONDS,
 	MICROSECONDS,
 }						t_time_code;
+
+typedef enum estatus
+{
+	EATING,
+	SLEEPING,
+	THINKING,
+	TAKE_FIRST_FORK,
+	TAKE_SECOND_FORK,
+	DEAD,
+}						t_philo_status;
 
 typedef struct s_table	t_table;
 typedef pthread_mutex_t	t_mutex;
@@ -52,6 +63,7 @@ typedef struct s_philo
 	t_fork				*second_fork;
 	t_table				*table;
 	t_mutex				*print_lock;
+	t_mutex				philo_mutex;
 }						t_philo;
 
 typedef struct s_table
@@ -67,19 +79,18 @@ typedef struct s_table
 	t_fork				*forks;
 	t_philo				*philos;
 	t_mutex				print_lock;
-	t_mutex table_mutex; // avoid races while reading from table
+	t_mutex				table_mutex;
+	t_mutex				write_mutex;
 	pthread_t			monitor_thread;
 }						t_table;
 
 void					*monitor_rutine(void *arg);
-void					*philo_rutine(void *arg);
 
 int						meals_left(t_philo *philo);
 
 long					get_time_delta(long start, long end);
-// long					get_timestamp(void);
 long					get_time(t_time_code time_code);
-void					precise_usleep(long usec);
+void					precise_usleep(long usec, t_table *table);
 void					wait_all_threads(t_table *table);
 
 long					ft_atol(const char *str);
@@ -97,5 +108,10 @@ bool					get_bool(t_mutex *mutex, bool *value);
 long					get_long(t_mutex *mutex, long *value);
 void					set_long(t_mutex *mutex, long *dest, long value);
 bool					simulation_finished(t_table *table);
+void					write_status(t_philo_status status, t_philo *philo,
+							bool debug);
+void					initialize_table(t_table *table, int argc, char **argv);
+void					dinner_start(t_table *table);
+int						init_data(t_table *table);
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   safe_functions.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ja <ja@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 16:54:05 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/20 18:51:41 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/10/21 22:04:32 by ja               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,9 +80,9 @@ void	safe_thread_handle(pthread_t *thread, void *(*foo)(void *), void *data,
 	if (CREATE == opcode)
 		handle_thread_error(pthread_create(thread, NULL, foo, data), opcode);
 	else if (JOIN == opcode)
-		handle_thread_error(pthread_join(thread, NULL), opcode);
+		handle_thread_error(pthread_join(*thread, NULL), opcode);
 	else if (DETACH == opcode)
-		handle_thread_error(pthread_detach(thread), opcode);
+		handle_thread_error(pthread_detach(*thread), opcode);
 	else
 		error_exit("Wrong opcode for thread_handle"
 			" (CREATE, JOIN, DETACH)");

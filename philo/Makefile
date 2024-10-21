@@ -12,14 +12,15 @@ OBJ_DIR = obj/
 
 # Source files
 SRCS =	error.c \
-		forks.c \
-		monitor.c \
-		philo_rutine.c \
 		philo.c \
 		time.c \
 		validate.c \
 		dinner.c \
-		getters_and_setters.c
+		write.c \
+		init.c \
+		safe_functions.c \
+		getters_and_setters.c \
+		utils.c
 
 
 OBJS = $(SRCS:.c=.o)

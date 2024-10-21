@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   time.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ja <ja@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 15:11:43 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/20 20:59:47 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/10/21 20:53:31 by ja               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,3 @@ long get_time(t_time_code time_code)
 	return (1337);
 }
 
-void	precise_usleep(long usec)
-{
-	long start_time = get_timestamp();
-	long elapsed_time = 0;
-
-	while (elapsed_time < usec / 1000)
-	{
-		usleep(100);
-		elapsed_time = get_timestamp() - start_time;
-	}
-}
