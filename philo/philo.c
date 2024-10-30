@@ -3,29 +3,76 @@
 /*                                                        :::      ::::::::   */
 /*   philo.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ja <ja@student.42.fr>                      +#+  +:+       +#+        */
+/*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/20 20:27:35 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/21 21:50:34 by ja               ###   ########.fr       */
+/*   Created: 2024/10/23 20:55:20 by gbuczyns          #+#    #+#             */
+/*   Updated: 2024/10/30 20:05:28 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void clean()
+int	philosopher_takes_forks(t_philo *philosophers)
 {
-	//clean all the mutexes
+	if (philosophers->id % 2 == 0)
+		pthread_mutex_lock(philosophers->right_fork);
+	else
+		pthread_mutex_lock(philosophers->left_fork);
+	if (!philosopher_is_dead(philosophers))
+		print_message("has taken a fork", philosophers);
+	if (philosophers->id % 2 == 0)
+	{
+		if (pthread_mutex_lock(philosophers->left_fork) != 0)
+			return (pthread_mutex_unlock(philosophers->right_fork), 1);
+		if (!philosopher_is_dead(philosophers))
+			print_message("has taken a fork", philosophers);
+	}
+	else
+	{
+		if (pthread_mutex_lock(philosophers->right_fork) != 0)
+			return (pthread_mutex_unlock(philosophers->left_fork), 1);
+		if (!philosopher_is_dead(philosophers))
+			print_message("has taken a fork", philosophers);
+	}
+	return (0);
 }
 
-int	main(int argc, char **argv)
+void	philosophers_is_eating(t_philo *philosophers)
 {
-	t_table	table;
+	print_message("is eating", philosophers);
+	pthread_mutex_lock(&philosophers->tab->mutex);
+	philosophers->last_meal = get_time() - philosophers->tab->starting_time;
+	philosophers->time_to_die = philosophers->last_meal
+		+ philosophers->tab->time_to_die;
+	pthread_mutex_unlock(&philosophers->tab->mutex);
+	ft_sleep(philosophers->tab->time_to_eat, philosophers);
+	pthread_mutex_lock(&philosophers->tab->mutex);
+	if (philosophers->meals_eaten != -1)
+		philosophers->meals_eaten++;
+	pthread_mutex_unlock(&philosophers->tab->mutex);
+	pthread_mutex_unlock(philosophers->left_fork);
+	pthread_mutex_unlock(philosophers->right_fork);
+}
 
-	if (validate_arguments(argc, argv))
-		return (0);
-	initialize_table(&table, argc, argv);
-	init_data(&table);
-	dinner_start(&table);
-	clean(&table); //when simulation is finished  | philo died
+void	philosophers_is_sleeping(t_philo *philosophers)
+{
+	print_message("is sleeping", philosophers);
+	ft_sleep(philosophers->tab->time_to_sleep, philosophers);
+}
+
+void	philosophers_is_thinking(t_philo *philosophers)
+{
+	print_message("is thinking", philosophers);
+}
+
+int	philosopher_is_dead(t_philo *philosophers)
+{
+	pthread_mutex_lock(&philosophers->tab->mutex);
+	if (philosophers->tab->philosopher_dead == 1)
+	{
+		pthread_mutex_unlock(&philosophers->tab->mutex);
+		return (1);
+	}
+	pthread_mutex_unlock(&philosophers->tab->mutex);
 	return (0);
 }

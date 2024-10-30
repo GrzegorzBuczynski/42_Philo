@@ -2,6 +2,7 @@
 	"files.associations": {
 		"philo.h": "c",
 		"errno.h": "c",
-		"time.h": "c"
+		"time.h": "c",
+		"stdbool.h": "c"
 	}
 }

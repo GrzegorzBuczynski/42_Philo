@@ -3,115 +3,73 @@
 #ifndef PHILO_H
 # define PHILO_H
 
-# include <errno.h>
+# define TRUE 1
+# define SUCCESS 1
+# define FALSE 0
+# define ERROR 0
+# define FAILURE 0
+
 # include <limits.h>
 # include <pthread.h>
-# include <stdbool.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <sys/time.h>
 # include <unistd.h>
 
-# define DEBUG_MODE 0
-
-typedef enum e_opcade
-{
-	LOCK,
-	UNLOCK,
-	INIT,
-	DESTROY,
-	CREATE,
-	JOIN,
-	DETACH,
-}						t_opcode;
-
-typedef enum e_time_code
-{
-	SECONDS,
-	MILLISECONDS,
-	MICROSECONDS,
-}						t_time_code;
-
-typedef enum estatus
-{
-	EATING,
-	SLEEPING,
-	THINKING,
-	TAKE_FIRST_FORK,
-	TAKE_SECOND_FORK,
-	DEAD,
-}						t_philo_status;
-
-typedef struct s_table	t_table;
-typedef pthread_mutex_t	t_mutex;
-
-typedef struct s_fork
-{
-	t_mutex				fork;
-	int					fork_id;
-
-}						t_fork;
-
 typedef struct s_philo
 {
-	int					id;
-	int					meals;
-	bool				full;
-	long				last_meal_time;
-	pthread_t			thread;
-	t_fork				*first_fork;
-	t_fork				*second_fork;
-	t_table				*table;
-	t_mutex				*print_lock;
-	t_mutex				philo_mutex;
-}						t_philo;
+	int				id;
+	int				last_meal;
+	int				is_eating;
+	int				time_to_die;
+	int				time_to_sleep;
+	int				time_to_eat;
+	int				meals_eaten;
+	int				hungry;
+	pthread_t		thread_id;
+	struct s_table	*tab;
+	pthread_mutex_t	*left_fork;
+	pthread_mutex_t	*right_fork;
+}					t_philo;
 
 typedef struct s_table
 {
-	long				num_philos;
-	long				time_to_die;
-	long				time_to_eat;
-	long				time_to_sleep;
-	long				meals;
-	long				start_time;
-	bool				end_simulation;
-	bool				all_threads_ready;
-	t_fork				*forks;
-	t_philo				*philos;
-	t_mutex				print_lock;
-	t_mutex				table_mutex;
-	t_mutex				write_mutex;
-	pthread_t			monitor_thread;
-}						t_table;
+	int				number_of_philosophers;
+	int				time_to_die;
+	int				time_to_sleep;
+	int				time_to_eat;
+	int				number_of_meals;
+	int				starting_time;
+	int				philosopher_dead;
+	pthread_mutex_t	*fork_mutex;
+	pthread_mutex_t	mutex;
+	pthread_mutex_t	*left_fork;
+	pthread_mutex_t	*right_fork;
+	t_philo			*philosophers;
+}					t_table;
 
-void					*monitor_rutine(void *arg);
+int					initialize_table(t_table *tab, char **argv);
+void				print_limits_error(void);
+void				print_right_syntax(void);
+void				philosophers_is_eating(t_philo *philosophers);
+void				philosophers_is_sleeping(t_philo *philosophers);
+void				philosophers_is_thinking(t_philo *philosophers);
+void				*philosophers_routine(void *arguments);
+void				begin_philosophers_routine(t_table *data);
+void				free_philosophers(t_table *philosophers);
+void				*begin_monitoring(void *arg);
+void				join_threads(t_table *data);
+void				print_message(char *str, t_philo *philosopher);
+void				ft_sleep(int time, t_philo *philosophers);
 
-int						meals_left(t_philo *philo);
+long				ft_atoi_long(const char *str);
 
-long					get_time_delta(long start, long end);
-long					get_time(t_time_code time_code);
-void					precise_usleep(long usec, t_table *table);
-void					wait_all_threads(t_table *table);
-
-long					ft_atol(const char *str);
-int						is_positive_integer(const char *str);
-int						validate_arguments(int argc, char **argv);
-
-void					safe_thread_handle(pthread_t *thread,
-							void *(*foo)(void *), void *data, t_opcode opcode);
-void					safe_mutex_handle(t_mutex *mutex, t_opcode opcode);
-void					error_exit(const char *error);
-void					*safe_malloc(size_t size);
-
-void					set_bool(t_mutex *mutex, bool *dest, bool value);
-bool					get_bool(t_mutex *mutex, bool *value);
-long					get_long(t_mutex *mutex, long *value);
-void					set_long(t_mutex *mutex, long *dest, long value);
-bool					simulation_finished(t_table *table);
-void					write_status(t_philo_status status, t_philo *philo,
-							bool debug);
-void					initialize_table(t_table *table, int argc, char **argv);
-void					dinner_start(t_table *table);
-int						init_data(t_table *table);
+int					philosopher_is_dead(t_philo *philosophers);
+int					philosopher_takes_forks(t_philo *philosophers);
+int					ft_atoi(const char *str);
+int					init_mutex(t_table *tab);
+int					get_time(void);
+int					validate_arguments(int argc, char **argv);
+long				ft_atol(const char *str);
 
 #endif

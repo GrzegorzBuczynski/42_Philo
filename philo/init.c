@@ -3,80 +3,77 @@
 /*                                                        :::      ::::::::   */
 /*   init.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ja <ja@student.42.fr>                      +#+  +:+       +#+        */
+/*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 20:26:07 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/21 22:00:32 by ja               ###   ########.fr       */
+/*   Updated: 2024/10/30 20:09:19 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
-
 #include "philo.h"
 
-void	initialize_table(t_table *table, int argc, char **argv)
+int	init_philos(t_table *tab)
 {
-	table->num_philos = ft_atol(argv[1]);
-	table->time_to_die = ft_atol(argv[2]) * 1000;
-	table->time_to_eat = ft_atol(argv[3]) * 1000;
-	table->time_to_sleep = ft_atol(argv[4]) * 1000;
-	if (argc == 6)
-		table->meals = ft_atol(argv[5]);
-	else
-		table->meals = -1;
+	int	i;
+
+	i = 0;
+	tab->philosophers = malloc(sizeof(t_philo) * tab->number_of_philosophers);
+	if (!tab->philosophers)
+		return (FAILURE);
+	while (i < tab->number_of_philosophers)
+	{
+		tab->philosophers[i].id = i + 1;
+		tab->philosophers[i].left_fork = &tab->fork_mutex[i];
+		tab->philosophers[i].right_fork = &tab->fork_mutex[(i + 1)
+			% tab->number_of_philosophers];
+		tab->philosophers[i].tab = tab;
+		tab->philosophers[i].time_to_die = tab->time_to_die;
+		tab->philosophers[i].time_to_eat = tab->time_to_eat;
+		tab->philosophers[i].time_to_sleep = tab->time_to_sleep;
+		tab->philosophers[i].last_meal = 0;
+		tab->philosophers[i].is_eating = 0;
+		tab->philosophers[i].meals_eaten = 0;
+		tab->philosophers[i].hungry = 1;
+		i++;
+	}
+	return (SUCCESS);
 }
 
-static void	assign_forks(t_philo *philo, t_fork *forks, int philo_position)
-{
-	int	num_philos;
-
-	num_philos = philo->table->num_philos;
-	if (philo->id % 2 == 0)
-	{
-		philo->first_fork = &forks[philo_position];
-		philo->second_fork = &forks[(philo_position + 1) % num_philos];
-	}
-	else
-	{
-		philo->first_fork = &forks[(philo_position + 1) % num_philos];
-		philo->second_fork = &forks[philo_position];
-	}
-}
-
-static void	philo_init(t_table *table)
-{
-	int		i;
-	t_philo	*philo;
-
-	i = -1;
-	while (++i < table->num_philos)
-	{
-		philo = table->philos + i;
-		philo->id = i + 1;
-		philo->full = false;
-		philo->meals = 0;
-		philo->table = table;
-		safe_mutex_handle(&philo->philo_mutex, INIT);
-		assign_forks(&table->philos[i], table->forks, i);
-	}
-}
-
-int	init_data(t_table *table)
+int	init_mutex(t_table *tab)
 {
 	int	i;
 
 	i = -1;
-	table->end_simulation = false;
-	table->philos = safe_malloc(sizeof(t_philo) * table->num_philos);
-	safe_mutex_handle(&table->table_mutex, INIT);
-	safe_mutex_handle(&table->write_mutex, INIT);
-	table->forks = safe_malloc(sizeof(pthread_mutex_t) * table->num_philos);
-	while (++i < table->num_philos)
-	{
-		safe_mutex_handle(&table->forks[i].fork, INIT);
-		table->forks[i].fork_id = i;
-	}
-	philo_init(table);
-	return (0);
+	tab->fork_mutex = malloc(sizeof(pthread_mutex_t)
+			* tab->number_of_philosophers);
+	if (!tab->fork_mutex)
+		return (FAILURE);
+	while (++i < tab->number_of_philosophers)
+		pthread_mutex_init(&tab->fork_mutex[i], NULL);
+	pthread_mutex_init(&tab->mutex, NULL);
+	return (SUCCESS);
+}
+
+void	unlock_philosophers_mutex(t_table *philosophers)
+{
+	pthread_mutex_unlock(philosophers->left_fork);
+	pthread_mutex_unlock(philosophers->right_fork);
+}
+
+int	initialize_table(t_table *tab, char **argv)
+{
+	tab->number_of_philosophers = ft_atoi(argv[1]);
+	tab->time_to_die = ft_atoi(argv[2]);
+	tab->time_to_eat = ft_atoi(argv[3]);
+	tab->time_to_sleep = ft_atoi(argv[4]);
+	if (argv[5])
+		tab->number_of_meals = ft_atoi(argv[5]);
+	else
+		tab->number_of_meals = -1;
+	tab->philosopher_dead = 0;
+	if (init_mutex(tab) == FAILURE)
+		return (FAILURE);
+	if (init_philos(tab) == FAILURE)
+		return (FAILURE);
+	return (SUCCESS);
 }

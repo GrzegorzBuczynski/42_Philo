@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-WARNFLAGS = -Wall -Wextra -Werror
+WARNFLAGS = -Wall -Wextra -Werror #-fsanitize=thread
 RLFLAG = -lreadline -lm -g
 CFLAGS = -g
 
@@ -11,16 +11,14 @@ CFLAGS = -g
 OBJ_DIR = obj/
 
 # Source files
-SRCS =	error.c \
+SRCS =	init.c \
+		main.c \
+		monitor.c \
 		philo.c \
-		time.c \
-		validate.c \
-		dinner.c \
-		write.c \
-		init.c \
-		safe_functions.c \
-		getters_and_setters.c \
-		utils.c
+		rutine.c \
+		utils_2.c \
+		utils.c \
+		validate.c 		
 
 
 OBJS = $(SRCS:.c=.o)
@@ -39,8 +37,13 @@ $(NAME): $(OBJS)
 	@echo "Linking objects into executable..."
 	$(CC) $(WARNFLAGS) $(CFLAGS)  $(OBJS) -o $(NAME) 
 
+# $(CC)  $(CFLAGS)  $(OBJS) -o $(NAME) 
+
 %.o: %.c
 	$(CC) $(WARNFLAGS) $(CFLAGS) $(HEADERS) -c $< -o $@ 
+
+#$(CC) $(CFLAGS) $(HEADERS) -c $< -o $@ 
+
 
 # Clean up obj files
 clean:
