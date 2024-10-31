@@ -63,3 +63,5 @@ push:
 	git add .
 	git commit -m "make push!"
 	git push
+
+#% valgrind --tool=helgrind ./philo 5 800 200 200 7

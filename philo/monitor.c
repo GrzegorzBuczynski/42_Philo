@@ -6,18 +6,19 @@
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 15:00:04 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/30 20:18:08 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/10/31 21:19:26 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	check_last_meal(t_philo *philo)
+int	is_alive(t_philo *philo)
 {
 	if (get_time() - philo->tab->starting_time > philo->time_to_die)
 	{
 		philo->tab->philosopher_dead = 1;
-		printf("%d %d died\n", get_time() - philo->tab->starting_time,
+		if (philo->hungry)
+			printf("%d %d died\n", get_time() - philo->tab->starting_time,
 			philo->id);
 		return (0);
 	}
@@ -34,8 +35,7 @@ int	check_if_one_is_dead_or_full(t_table *tab)
 	{
 		if (tab->philosophers[i].meals_eaten == tab->number_of_meals)
 			tab->philosophers[i].hungry = 0;
-		if (tab->philosophers[i].hungry != 0)
-			if (check_last_meal(&tab->philosophers[i]) == ERROR)
+		if (!is_alive(&tab->philosophers[i]))
 				return (ERROR);
 		i++;
 	}
@@ -50,18 +50,23 @@ void	free_philosophers(t_table *philosophers)
 
 void	*begin_monitoring(void *arg)
 {
-	t_table	*data;
+	t_table	*table;
+	int		i;
 
-	data = (t_table *)arg;
-	while (1)
-	{
-		pthread_mutex_lock(&data->mutex);
-		if (check_if_one_is_dead_or_full(data) == ERROR)
+	i = 1;
+	table = (t_table *)arg;
+	while (i)
+	{	
+		pthread_mutex_lock(&table->mutex);
+		if (check_if_one_is_dead_or_full(table) == ERROR)
 		{
 			usleep(100);
-			return (pthread_mutex_unlock(&data->mutex), NULL);
+			i = 0;
+			pthread_mutex_unlock(&table->mutex);
+			return ( NULL);
 		}
-		pthread_mutex_unlock(&data->mutex);
+		pthread_mutex_unlock(&table->mutex);
 		usleep(200);
 	}
+	return (NULL);
 }
