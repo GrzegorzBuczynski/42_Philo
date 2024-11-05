@@ -6,7 +6,7 @@
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 15:00:04 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/31 21:19:26 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/11/05 17:16:33 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int	is_alive(t_philo *philo)
 		philo->tab->philosopher_dead = 1;
 		if (philo->hungry)
 			printf("%d %d died\n", get_time() - philo->tab->starting_time,
-			philo->id);
+				philo->id);
 		return (0);
 	}
 	else
@@ -36,7 +36,7 @@ int	check_if_one_is_dead_or_full(t_table *tab)
 		if (tab->philosophers[i].meals_eaten == tab->number_of_meals)
 			tab->philosophers[i].hungry = 0;
 		if (!is_alive(&tab->philosophers[i]))
-				return (ERROR);
+			return (ERROR);
 		i++;
 	}
 	return (1);
@@ -56,14 +56,14 @@ void	*begin_monitoring(void *arg)
 	i = 1;
 	table = (t_table *)arg;
 	while (i)
-	{	
+	{
 		pthread_mutex_lock(&table->mutex);
 		if (check_if_one_is_dead_or_full(table) == ERROR)
 		{
 			usleep(100);
 			i = 0;
 			pthread_mutex_unlock(&table->mutex);
-			return ( NULL);
+			return (NULL);
 		}
 		pthread_mutex_unlock(&table->mutex);
 		usleep(200);

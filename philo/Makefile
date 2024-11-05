@@ -1,7 +1,16 @@
-# Compiler
-CC = gcc
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/11/05 17:18:06 by gbuczyns          #+#    #+#              #
+#    Updated: 2024/11/05 17:21:24 by gbuczyns         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
-# Compiler flags
+CC = gcc
 WARNFLAGS = -Wall -Wextra -Werror #-fsanitize=thread
 RLFLAG = -lreadline -lm -g
 CFLAGS = -g
@@ -23,40 +32,25 @@ SRCS =	init.c \
 
 OBJS = $(SRCS:.c=.o)
 
-# Program Name
 NAME = philo
 
-
-
-# Default rule
 all: $(NAME)
 	
-#$(LIBFT) $(FTPRINTF) $(NAME)
 $(NAME): $(OBJS)
-#	clear
 	@echo "Linking objects into executable..."
 	$(CC) $(WARNFLAGS) $(CFLAGS)  $(OBJS) -o $(NAME) 
-
-# $(CC)  $(CFLAGS)  $(OBJS) -o $(NAME) 
 
 %.o: %.c
 	$(CC) $(WARNFLAGS) $(CFLAGS) $(HEADERS) -c $< -o $@ 
 
-#$(CC) $(CFLAGS) $(HEADERS) -c $< -o $@ 
-
-
-# Clean up obj files
 clean:
 	rm -f $(OBJS)
 
-# Full clean up
 fclean: clean
 	rm -f $(NAME)
 
-# Rebuild
 re: fclean all
 
-# Ensure that 'all', 'clean', 'fclean', 're', and 'bonus' are not interpreted as file names
 .PHONY: all clean fclean re bonus
 
 push:

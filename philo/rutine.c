@@ -6,7 +6,7 @@
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 20:07:41 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/31 21:17:43 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/11/05 17:15:49 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,10 @@ int	is_hungry(t_philo *philo)
 	return (0);
 }
 
-int one_philo(t_philo *philo)
+int	one_philo(t_philo *philo)
 {
 	if (philo->tab->number_of_philosophers == 1)
-	{	
+	{
 		pthread_mutex_lock(&philo->tab->mutex);
 		printf("0 1 has taken a fork\n");
 		pthread_mutex_unlock(&philo->tab->mutex);
@@ -36,6 +36,7 @@ int one_philo(t_philo *philo)
 	}
 	return (0);
 }
+
 void	*philosophers_routine(void *arguments)
 {
 	t_philo	*philo;

@@ -6,17 +6,11 @@
 /*   By: gbuczyns <gbuczyns@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 20:27:35 by gbuczyns          #+#    #+#             */
-/*   Updated: 2024/10/31 20:21:03 by gbuczyns         ###   ########.fr       */
+/*   Updated: 2024/11/05 17:14:47 by gbuczyns         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-void	clean(t_table *table)
-{
-	// clean all the mutexes
-	(void)table;
-}
 
 int	main(int argc, char **argv)
 {
